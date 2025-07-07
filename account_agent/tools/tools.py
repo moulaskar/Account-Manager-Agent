@@ -1,8 +1,8 @@
 
-#from ..services.db_service import DBService
+from services.db_service import DBService
 from google.adk.tools.tool_context import ToolContext
 
-#db = DBService()
+db = DBService()
 
 def create_account(tool_context: ToolContext, username: str, password: str, first_name: str, last_name: str, email: str, new_contact: str, address: str) -> str:
     """
@@ -47,12 +47,16 @@ def update_address(tool_context: ToolContext, username: str, password: str, new_
     """
 def update_address(tool_context: ToolContext, username: str, password: str, new_address: str) -> str:
     print("Inside update_address: ")
-    print("**********************\n\n\n", vars(tool_context.state))
-    #db.update_field(username, "address", new_address)
+    #print("**********************\n\n\n", vars(tool_context.state))
+    customer = tool_context.state.get("customer")
+    if customer:
+        customer.username = username
+        customer.password = password
+    db.update_field(username, "address", new_address)
     #intent = tool_context.session.state.get("intent", None)
     #tool_context.state["intext"] = None
     #tool_context.session.state["address"] = new_address
-    return f"Address updated for {username}."
+    #return f"Address updated for {username}."
 
 
 

@@ -1,0 +1,34 @@
+2025-07-06 21:28:49 - adk_app - INFO     - create_session_endpoint: Session Id: a08b12a5-166e-4cf3-a687-cf95e5f9bb0d
+2025-07-06 21:28:49 - adk_app - INFO     - create_session_endpoint: Session created for user: 3008
+2025-07-06 21:28:49 - adk_app - INFO     - create_session_endpoint: Created Session for user: {'id': 'a08b12a5-166e-4cf3-a687-cf95e5f9bb0d', 'app_name': 'Customer Support Agent', 'user_id': '3008', 'state': {'customer': <account_agent.config.Customer.Customer object at 0x0000026BCE631970>}, 'events': [], 'last_update_time': 1751862529.7544246}
+2025-07-06 21:29:07 - adk_app - INFO     - chat_with_agent: User (6956): hi
+2025-07-06 21:29:09 - adk_app - INFO     - ------------------------1:  session_id: a08b12a5-166e-4cf3-a687-cf95e5f9bb0d
+2025-07-06 21:29:09 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x0000026BCE607BF0>, 'conversation': 'Hello there! How can I help you today?\n'}
+2025-07-06 21:29:09 - adk_app - INFO     - last response: Hello there! How can I help you today?
+
+2025-07-06 21:29:09 - adk_app - INFO     - ============================
+2025-07-06 21:29:09 - adk_app - INFO     - Full conversation log
+2025-07-06 21:29:09 - adk_app - INFO     - Session ID: a08b12a5-166e-4cf3-a687-cf95e5f9bb0d
+2025-07-06 21:29:09 - adk_app - INFO     - User ID: 6956
+2025-07-06 21:29:09 - adk_app - INFO     - Conversation: Hello there! How can I help you today?
+ 
+2025-07-06 21:29:19 - adk_app - INFO     - chat_with_agent: User (5425): update address
+2025-07-06 21:29:21 - adk_app - INFO     - ------------------------1:  session_id: a08b12a5-166e-4cf3-a687-cf95e5f9bb0d
+2025-07-06 21:29:21 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x0000026BCE6F68A0>, 'conversation': "I can help with that. I need your username, current password, and the new address you'd like to use."}
+2025-07-06 21:29:21 - adk_app - INFO     - last response: I can help with that. I need your username, current password, and the new address you'd like to use.
+2025-07-06 21:29:21 - adk_app - INFO     - ============================
+2025-07-06 21:29:22 - adk_app - INFO     - Full conversation log
+2025-07-06 21:29:22 - adk_app - INFO     - Session ID: a08b12a5-166e-4cf3-a687-cf95e5f9bb0d
+2025-07-06 21:29:22 - adk_app - INFO     - User ID: 5425
+2025-07-06 21:29:22 - adk_app - INFO     - Conversation: I can help with that. I need your username, current password, and the new address you'd like to use. 
+2025-07-06 21:29:41 - adk_app - INFO     - chat_with_agent: User (8716): mou, 5678, 159 N Abalone Dr Gilbert AZ 85233
+2025-07-06 21:29:45 - adk_app - INFO     - before_tool: update_address
+2025-07-06 21:29:45 - adk_app - INFO     - User 'mou' authenticated successfully.
+2025-07-06 21:29:45 - adk_app - INFO     - ------------------------1:  session_id: a08b12a5-166e-4cf3-a687-cf95e5f9bb0d
+2025-07-06 21:29:45 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x0000026BCE607BF0>}
+2025-07-06 21:29:45 - adk_app - INFO     - last response: None
+2025-07-06 21:29:45 - adk_app - INFO     - ============================
+2025-07-06 21:29:45 - adk_app - INFO     - Full conversation log
+2025-07-06 21:29:45 - adk_app - INFO     - Session ID: a08b12a5-166e-4cf3-a687-cf95e5f9bb0d
+2025-07-06 21:29:45 - adk_app - INFO     - User ID: 8716
+2025-07-06 21:29:45 - adk_app - INFO     - Conversation: [] 

@@ -1,7 +1,16 @@
 from google.genai import types
+import random
+import smtplib
+import random
+import os
+from email.message import EmailMessage
+from services.logger import get_logger
 
 
 
+
+
+logger = get_logger()
 async def process_agent_response(event):
     """Process and display agent response events."""
     print(f"Event ID: {event.id}, Author: {event.author}")
@@ -83,6 +92,43 @@ def set_intent(message, session):
     except Exception as e:
         msg = f"ERROR int set_intent: {e}"
         print(msg)
+
+
+def get_user_id():
+    user_id = str(random.randint(1000, 9999))
+    return user_id
+
+def update_customer_data(user_details, customer):
+    if user_details:
+        customer.username = user_details.get('username', '')
+        customer.password = user_details.get('password', '')
+        customer.first_name = user_details.get('first_name', '')
+        customer.last_name = user_details.get('last_name', '')
+        customer.email = user_details.get('email', '')
+        customer.new_contact = user_details.get('phone_number', '')
+        customer.address = user_details.get('address', '')
+    return customer
+
+
+def send_otp(recipient_email, otp):
+    logger.info(f"send_otp: Sending OTP to {recipient_email}")
+    msg = EmailMessage()
+    msg.set_content(f"Your OTP is: {otp}")
+    msg['Subject'] = 'Your OTP for Account Verification'
+    msg['From'] = os.getenv("EMAIL_SENDER")
+    msg['To'] = recipient_email
+    
+    with smtplib.SMTP(os.getenv("SMTP_SERVER"), int(os.getenv("SMTP_PORT"))) as server:
+        server.starttls()
+        server.login(os.getenv("EMAIL_SENDER"), os.getenv("SMTP_PASSWORD"))
+        server.send_message(msg)
+    logger.info(f"send_otp: Sending OTP with message  {msg}")
+    return 
+
+
+
+
+
 
 
 

@@ -4,6 +4,7 @@ import psycopg2
 import os
 import bcrypt
 from psycopg2 import sql
+import psycopg2.extras
 from dotenv import load_dotenv
 load_dotenv()
 #import logging
@@ -111,6 +112,15 @@ class DBService:
             """, (user_id,))
             result = cursor.fetchone()
             return result[0] if result else None
+        
+    def get_user_details(self, username):
+        with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            cursor.execute(
+                f"SELECT * FROM {os.getenv('DB_TABLE_NAME')} WHERE username = %s",
+                (username,)
+            )
+            row = cursor.fetchone()
+            return dict(row) if row else None
 
     def close(self):
         """Closes the database connection."""

@@ -1,0 +1,51 @@
+2025-07-06 22:45:32 - adk_app - INFO     - create_session_endpoint: Session Id: 5c55fde8-148d-4a35-b6a2-98b2290e2cdc
+2025-07-06 22:45:32 - adk_app - INFO     - create_session_endpoint: Session created for user: 3858
+2025-07-06 22:45:32 - adk_app - INFO     - create_session_endpoint: Created Session for user: {'id': '5c55fde8-148d-4a35-b6a2-98b2290e2cdc', 'app_name': 'Customer Support Agent', 'user_id': '3858', 'state': {'customer': <account_agent.config.Customer.Customer object at 0x000001D3304D9040>}, 'events': [], 'last_update_time': 1751867132.8611617}
+2025-07-06 22:45:37 - adk_app - INFO     - chat_with_agent: User (9937): hi
+2025-07-06 22:45:40 - adk_app - INFO     - ------------------------1:  session_id: 5c55fde8-148d-4a35-b6a2-98b2290e2cdc
+2025-07-06 22:45:40 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x000001D330556870>, 'conversation': 'Hello! How can I help you today? I can assist with account management tasks like creating an account or updating your password, email, contact, or address.'}
+2025-07-06 22:45:40 - adk_app - INFO     - last response: Hello! How can I help you today? I can assist with account management tasks like creating an account or updating your password, email, contact, or address.
+2025-07-06 22:45:40 - adk_app - INFO     - ============================
+2025-07-06 22:45:40 - adk_app - INFO     - Full conversation log
+2025-07-06 22:45:40 - adk_app - INFO     - Session ID: 5c55fde8-148d-4a35-b6a2-98b2290e2cdc
+2025-07-06 22:45:40 - adk_app - INFO     - User ID: 9937
+2025-07-06 22:45:40 - adk_app - INFO     - Conversation: Hello! How can I help you today? I can assist with account management tasks like creating an account or updating your password, email, contact, or address. 
+2025-07-06 22:45:50 - adk_app - INFO     - chat_with_agent: User (2982): update address
+2025-07-06 22:45:53 - adk_app - INFO     - ------------------------1:  session_id: 5c55fde8-148d-4a35-b6a2-98b2290e2cdc
+2025-07-06 22:45:53 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x000001D3305AE660>, 'conversation': 'Please provide your username, password and new address.'}
+2025-07-06 22:45:53 - adk_app - INFO     - last response: Please provide your username, password and new address.
+2025-07-06 22:45:53 - adk_app - INFO     - ============================
+2025-07-06 22:45:53 - adk_app - INFO     - Full conversation log
+2025-07-06 22:45:53 - adk_app - INFO     - Session ID: 5c55fde8-148d-4a35-b6a2-98b2290e2cdc
+2025-07-06 22:45:53 - adk_app - INFO     - User ID: 2982
+2025-07-06 22:45:53 - adk_app - INFO     - Conversation: Please provide your username, password and new address. 
+2025-07-06 22:46:20 - adk_app - INFO     - chat_with_agent: User (5121): mou, 5678, 159 N Abalone Dr Gilbert AZ 85233
+2025-07-06 22:46:24 - adk_app - INFO     - before_tool: update_address
+2025-07-06 22:46:24 - adk_app - INFO     - before_tool: Getting Username and Password to Authenticate
+2025-07-06 22:46:24 - adk_app - INFO     - before_tool: User 'mou' authenticated successfully.
+2025-07-06 22:46:24 - adk_app - INFO     - before_tool: database details {'username': 'mou', 'password': '5678', 'first_name': 'MOUMITA', 'last_name': 'LASKAR', 'email': 'moumita.laskar@gmail.com', 'phone_number': '4805672840', 'address': '1234 B Dsgrt, bdgjg, Az, 87654'}
+2025-07-06 22:46:24 - adk_app - INFO     - Customer object in session state updated for user: mou
+2025-07-06 22:46:24 - adk_app - INFO     - before_tool: Verifying OTP
+2025-07-06 22:46:24 - adk_app - INFO     - verify_otp_tool: customer is {'user_id': '5121', 'session_id': '5c55fde8-148d-4a35-b6a2-98b2290e2cdc', 'app_name': 'Customer Support Agent', 'session_state': {}, 'username': 'mou', 'password': '5678', 'first_name': 'MOUMITA', 'last_name': 'LASKAR', 'email': 'moumita.laskar@gmail.com', 'new_contact': '4805672840', 'address': '1234 B Dsgrt, bdgjg, Az, 87654', 'otp': None, 'first_auth': True, 'logs': None}
+2025-07-06 22:46:24 - adk_app - INFO     - verify_otp_tool
+2025-07-06 22:46:24 - adk_app - INFO     - verify_otp_tool: Verifying OTP with email moumita.laskar@gmail.com
+2025-07-06 22:46:24 - adk_app - INFO     - verify_otp_tool: sending OTP 556619
+2025-07-06 22:46:24 - adk_app - INFO     - send_otp: Sending OTP to moumita.laskar@gmail.com
+2025-07-06 22:46:26 - adk_app - INFO     - send_otp: Sending OTP with message  Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your OTP for Account Verification
+From: mou.laskar@gmail.com
+To: moumita.laskar@gmail.com
+
+Your OTP is: 556619
+
+2025-07-06 22:46:26 - adk_app - INFO     - OTP Authentication Failed for user: mou
+2025-07-06 22:46:28 - adk_app - INFO     - ------------------------1:  session_id: 5c55fde8-148d-4a35-b6a2-98b2290e2cdc
+2025-07-06 22:46:28 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x000001D3303F12B0>, 'expected_otp': '556619', 'otp_created_time': 1751867184.3331394, 'conversation': 'I am sorry, the OTP authentication failed for the user mou.'}
+2025-07-06 22:46:28 - adk_app - INFO     - last response: I am sorry, the OTP authentication failed for the user mou.
+2025-07-06 22:46:28 - adk_app - INFO     - ============================
+2025-07-06 22:46:28 - adk_app - INFO     - Full conversation log
+2025-07-06 22:46:28 - adk_app - INFO     - Session ID: 5c55fde8-148d-4a35-b6a2-98b2290e2cdc
+2025-07-06 22:46:28 - adk_app - INFO     - User ID: 5121
+2025-07-06 22:46:28 - adk_app - INFO     - Conversation: I am sorry, the OTP authentication failed for the user mou. 

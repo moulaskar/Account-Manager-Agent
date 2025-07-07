@@ -7,6 +7,7 @@ from google.adk.runners import Runner
 from dotenv import load_dotenv
 from google.adk.sessions import InMemorySessionService
 from .shared_libraries.callbacks import before_tool
+from .config.Customer import Customer
 from .tools.tools import (
     create_account,
     update_contact,
@@ -37,7 +38,8 @@ app.add_middleware(
 
 # --- Imports from services ---
 from services.logger import setup_logger, get_logger
-from services.utils import call_agent_async, set_intent
+from services.utils import call_agent_async, set_intent, get_user_id
+
 
 
 # --- Root Agent with sub-agents ---
@@ -57,7 +59,7 @@ root_agent = Agent(
         - update_address
 
         Behavior:
-
+        - While entering details, just seperate each details in same sequence with comma. Don't use comma while entering address
         - If the user asks to do one of these, you must call the matching TOOL with all required arguments.
         - If you do not have enough arguments, ask the user for them.
         - Do not just respond in text when a TOOL is appropriate: always call the TOOL if you can.
@@ -72,7 +74,7 @@ root_agent = Agent(
         - User: "Create a new account for John Doe"
         -> Ask for all required fields, then call create_account
 
-        If you are unsure which function they want, clarify with the user.
+        
         """,
     tools=[
         create_account,
@@ -84,16 +86,12 @@ root_agent = Agent(
     before_tool_callback=before_tool,
     output_key="conversation"
 )
-initial_state = {
-        "user_id": "1",
-        "username": "Guest",
-        "conversation": [],
-        "first_auth": "",
-        "otp": "",
-        "sess_id":"",
-        "intent": None,
-        "address": "",
-    }
+
+def get_initial_state(user_id: str, session_id: str) -> dict:
+    """Creates the initial state for a new session."""
+    customer = Customer(user_id=user_id, session_id=session_id, app_name=app_name)
+    return {"customer": customer}
+
 # --- Runner setup ---
 runner = Runner(
     agent=root_agent,
@@ -112,9 +110,10 @@ async def create_session_endpoint(request: Request):
     user_id = data.get("user_id", "Guest")
     session_id = generate_session_id()
     
-    session = await session_service.create_session(app_name=app_name, user_id=user_id, state=initial_state,session_id=session_id)
-    initial_state["sess_id"] = session_id
-    initial_state["user_id"] = user_id
+    state = get_initial_state(user_id, session_id)
+    session = await session_service.create_session(
+        app_name=app_name, user_id=user_id, state=state, session_id=session_id
+    )
    
     setup_logger(session_id)
     logger = get_logger()
@@ -127,33 +126,37 @@ async def create_session_endpoint(request: Request):
 @app.post("/chat")
 async def chat_with_agent(request: Request):
     data = await request.json()
-    user_id = data.get("user_id", "anonymous")
+    user_id = data.get("user_id", "1234")
     session_id = data.get("session_id")
     message = data.get("message")
     
     if not message:
         raise HTTPException(status_code=400, detail="No message provided")
 
-    # Auto-create session if missing
+    # Get or create session logic
     if not session_id:
         session_id = generate_session_id()
-        await session_service.create_session(app_name=app_name, user_id=user_id, state=initial_state, session_id=session_id)
-        setup_logger(session_id)
 
-    # Ensure logger exists
+    session = await session_service.get_session(
+        app_name=app_name, user_id=user_id, session_id=session_id
+    )
+    if not session:
+        # Session does not exist, create it with initial state
+        state = get_initial_state(user_id, session_id)
+        await session_service.create_session(
+            app_name=app_name, user_id=user_id, state=state, session_id=session_id
+        )
+
     setup_logger(session_id)
     logger = get_logger()
     logger.info(f"chat_with_agent: User ({user_id}): {message}")
 
-    # Ensure session exists
-    await session_service.create_session(app_name=app_name, user_id=user_id, state=initial_state,session_id=session_id)
-    logger.info(f"chat_with_agent: Session created for app_name: {app_name}, user_id: {user_id}, session_id: {session_id}")
     # Call the agent
     await call_agent_async(runner, user_id, session_id, message)
     logger.info(f"------------------------1:  session_id: {session_id}")
     # Get updated session state
     session = await session_service.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
-    set_intent(message, session)
+    #set_intent(message, session)
     
     logger.info(f"Session State: {session.state}")
  
