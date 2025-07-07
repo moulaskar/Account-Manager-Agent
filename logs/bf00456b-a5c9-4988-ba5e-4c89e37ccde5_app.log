@@ -1,0 +1,63 @@
+2025-07-07 02:07:13 - adk_app - INFO     - create_session_endpoint: Session Id: bf00456b-a5c9-4988-ba5e-4c89e37ccde5
+2025-07-07 02:07:13 - adk_app - INFO     - create_session_endpoint: Session created for user: 4528
+2025-07-07 02:07:13 - adk_app - INFO     - create_session_endpoint: Created Session for user: {'id': 'bf00456b-a5c9-4988-ba5e-4c89e37ccde5', 'app_name': 'Customer Support Agent', 'user_id': '4528', 'state': {'customer': <account_agent.config.Customer.Customer object at 0x0000028460079280>}, 'events': [], 'last_update_time': 1751879233.225452}
+2025-07-07 02:07:20 - adk_app - INFO     - chat_with_agent: User (3650): hi
+2025-07-07 02:07:20 - adk_app - INFO     - 4before Calling : state {'customer': <account_agent.config.Customer.Customer object at 0x0000028460079400>}
+2025-07-07 02:07:23 - adk_app - INFO     - ------------------------:  session_id: bf00456b-a5c9-4988-ba5e-4c89e37ccde5
+2025-07-07 02:07:23 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x000002845FEE6AE0>, 'conversation': 'Hi there! How can I help you today? I can help you with account management tasks like creating an account, updating your password, email, contact, or address.'}
+2025-07-07 02:07:23 - adk_app - INFO     - last response: Hi there! How can I help you today? I can help you with account management tasks like creating an account, updating your password, email, contact, or address.
+2025-07-07 02:07:23 - adk_app - INFO     - last response: Hi there! How can I help you today? I can help you with account management tasks like creating an account, updating your password, email, contact, or address.
+2025-07-07 02:07:23 - adk_app - INFO     - ============================
+2025-07-07 02:07:23 - adk_app - INFO     - Full conversation log
+2025-07-07 02:07:23 - adk_app - INFO     - Session ID: bf00456b-a5c9-4988-ba5e-4c89e37ccde5
+2025-07-07 02:07:23 - adk_app - INFO     - User ID: 3650
+2025-07-07 02:07:23 - adk_app - INFO     - Conversation: Hi there! How can I help you today? I can help you with account management tasks like creating an account, updating your password, email, contact, or address. 
+2025-07-07 02:07:34 - adk_app - INFO     - chat_with_agent: User (7614): update_address
+2025-07-07 02:07:34 - adk_app - INFO     - 4before Calling : state {'customer': <account_agent.config.Customer.Customer object at 0x000002846014D2B0>}
+2025-07-07 02:07:37 - adk_app - INFO     - ------------------------:  session_id: bf00456b-a5c9-4988-ba5e-4c89e37ccde5
+2025-07-07 02:07:37 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x0000028460079340>, 'conversation': 'I can help with that. I need your username, current password, and your new address. Please provide them separated by commas.'}
+2025-07-07 02:07:37 - adk_app - INFO     - last response: I can help with that. I need your username, current password, and your new address. Please provide them separated by commas.
+2025-07-07 02:07:37 - adk_app - INFO     - last response: I can help with that. I need your username, current password, and your new address. Please provide them separated by commas.
+2025-07-07 02:07:37 - adk_app - INFO     - ============================
+2025-07-07 02:07:37 - adk_app - INFO     - Full conversation log
+2025-07-07 02:07:37 - adk_app - INFO     - Session ID: bf00456b-a5c9-4988-ba5e-4c89e37ccde5
+2025-07-07 02:07:37 - adk_app - INFO     - User ID: 7614
+2025-07-07 02:07:37 - adk_app - INFO     - Conversation: I can help with that. I need your username, current password, and your new address. Please provide them separated by commas. 
+2025-07-07 02:07:52 - adk_app - INFO     - chat_with_agent: User (3118): 
+mou, 5678, 159 N Abalone Dr Gilbert AZ 85255
+2025-07-07 02:07:52 - adk_app - INFO     - 4before Calling : state {'customer': <account_agent.config.Customer.Customer object at 0x00000284600792E0>}
+2025-07-07 02:07:59 - adk_app - INFO     - before_tool: update_address
+2025-07-07 02:07:59 - adk_app - INFO     - User not yet fully authenticated.
+2025-07-07 02:07:59 - adk_app - INFO     - Saving pending tool and args.
+2025-07-07 02:07:59 - adk_app - INFO     - Customer mou authenticated.
+2025-07-07 02:07:59 - adk_app - INFO     - send_otp: Sending OTP to moumita.laskar@gmail.com
+2025-07-07 02:08:00 - adk_app - INFO     - send_otp: Sending OTP with message  Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your OTP for Account Verification
+From: mou.laskar@gmail.com
+To: moumita.laskar@gmail.com
+
+Your OTP is: 306592
+
+2025-07-07 02:08:00 - adk_app - INFO     - Sent OTP to moumita.laskar@gmail.com: 306592
+2025-07-07 02:08:04 - adk_app - INFO     - ------------------------:  session_id: bf00456b-a5c9-4988-ba5e-4c89e37ccde5
+2025-07-07 02:08:04 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x00000284600D1310>, 'pending_tool': 'update_address', 'pending_args': {'new_address': '159 N Abalone Dr Gilbert AZ 85255', 'password': '5678', 'username': 'mou'}, 'expected_otp': '306592', 'otp_timestamp': 1751879279.3421957, 'conversation': 'An OTP was sent to moumita.laskar@gmail.com. Please enter it to continue.'}
+2025-07-07 02:08:04 - adk_app - INFO     - last response: An OTP was sent to moumita.laskar@gmail.com. Please enter it to continue.
+2025-07-07 02:08:04 - adk_app - INFO     - last response: An OTP was sent to moumita.laskar@gmail.com. Please enter it to continue.
+2025-07-07 02:08:04 - adk_app - INFO     - ============================
+2025-07-07 02:08:04 - adk_app - INFO     - Full conversation log
+2025-07-07 02:08:04 - adk_app - INFO     - Session ID: bf00456b-a5c9-4988-ba5e-4c89e37ccde5
+2025-07-07 02:08:04 - adk_app - INFO     - User ID: 3118
+2025-07-07 02:08:04 - adk_app - INFO     - Conversation: An OTP was sent to moumita.laskar@gmail.com. Please enter it to continue. 
+2025-07-07 02:08:21 - adk_app - INFO     - chat_with_agent: User (9802): 306592
+2025-07-07 02:08:21 - adk_app - INFO     - 4before Calling : state {'customer': <account_agent.config.Customer.Customer object at 0x00000284600793A0>}
+2025-07-07 02:08:24 - adk_app - INFO     - ------------------------:  session_id: bf00456b-a5c9-4988-ba5e-4c89e37ccde5
+2025-07-07 02:08:24 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x0000028460078B00>, 'conversation': 'What would you like to do with this number?'}
+2025-07-07 02:08:24 - adk_app - INFO     - last response: What would you like to do with this number?
+2025-07-07 02:08:24 - adk_app - INFO     - last response: What would you like to do with this number?
+2025-07-07 02:08:24 - adk_app - INFO     - ============================
+2025-07-07 02:08:24 - adk_app - INFO     - Full conversation log
+2025-07-07 02:08:24 - adk_app - INFO     - Session ID: bf00456b-a5c9-4988-ba5e-4c89e37ccde5
+2025-07-07 02:08:24 - adk_app - INFO     - User ID: 9802
+2025-07-07 02:08:24 - adk_app - INFO     - Conversation: What would you like to do with this number? 

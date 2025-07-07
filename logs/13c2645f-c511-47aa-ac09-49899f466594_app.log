@@ -1,0 +1,62 @@
+2025-07-07 00:44:42 - adk_app - INFO     - create_session_endpoint: Session Id: 13c2645f-c511-47aa-ac09-49899f466594
+2025-07-07 00:44:42 - adk_app - INFO     - create_session_endpoint: Session created for user: 6848
+2025-07-07 00:44:42 - adk_app - INFO     - create_session_endpoint: Created Session for user: {'id': '13c2645f-c511-47aa-ac09-49899f466594', 'app_name': 'Customer Support Agent', 'user_id': '6848', 'state': {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x0000022326748F80>}, 'events': [], 'last_update_time': 1751874282.3026545}
+2025-07-07 00:44:52 - adk_app - INFO     - chat_with_agent: User (7833): hi
+2025-07-07 00:44:52 - adk_app - INFO     - before_agent_callback: {'_value': {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x00000223267493D0>}, '_delta': {}}
+2025-07-07 00:44:56 - adk_app - INFO     - ------------------------1:  session_id: 13c2645f-c511-47aa-ac09-49899f466594
+2025-07-07 00:44:56 - adk_app - INFO     - Session State: {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x0000022325A14BC0>, 'conversation': 'Hello! How can I help you today? I can assist with account management tasks like creating an account, updating your password, email, contact, or address.'}
+2025-07-07 00:44:56 - adk_app - INFO     - last response: Hello! How can I help you today? I can assist with account management tasks like creating an account, updating your password, email, contact, or address.
+2025-07-07 00:44:56 - adk_app - INFO     - last response: Hello! How can I help you today? I can assist with account management tasks like creating an account, updating your password, email, contact, or address.
+2025-07-07 00:44:56 - adk_app - INFO     - ============================
+2025-07-07 00:44:56 - adk_app - INFO     - Full conversation log
+2025-07-07 00:44:56 - adk_app - INFO     - Session ID: 13c2645f-c511-47aa-ac09-49899f466594
+2025-07-07 00:44:56 - adk_app - INFO     - User ID: 7833
+2025-07-07 00:44:56 - adk_app - INFO     - Conversation: Hello! How can I help you today? I can assist with account management tasks like creating an account, updating your password, email, contact, or address. 
+2025-07-07 00:45:08 - adk_app - INFO     - chat_with_agent: User (6629): update address
+2025-07-07 00:45:08 - adk_app - INFO     - before_agent_callback: {'_value': {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x000002232681DEE0>}, '_delta': {}}
+2025-07-07 00:45:11 - adk_app - INFO     - ------------------------1:  session_id: 13c2645f-c511-47aa-ac09-49899f466594
+2025-07-07 00:45:11 - adk_app - INFO     - Session State: {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x000002232681DEE0>, 'conversation': 'I can help you with that. I need your username, password, and the new address.'}
+2025-07-07 00:45:11 - adk_app - INFO     - last response: I can help you with that. I need your username, password, and the new address.
+2025-07-07 00:45:11 - adk_app - INFO     - last response: I can help you with that. I need your username, password, and the new address.
+2025-07-07 00:45:11 - adk_app - INFO     - ============================
+2025-07-07 00:45:11 - adk_app - INFO     - Full conversation log
+2025-07-07 00:45:11 - adk_app - INFO     - Session ID: 13c2645f-c511-47aa-ac09-49899f466594
+2025-07-07 00:45:11 - adk_app - INFO     - User ID: 6629
+2025-07-07 00:45:11 - adk_app - INFO     - Conversation: I can help you with that. I need your username, password, and the new address. 
+2025-07-07 00:45:30 - adk_app - INFO     - chat_with_agent: User (4673): mou, 5678, 159 N Abalone Dr Gilbert AZ 85244
+2025-07-07 00:45:30 - adk_app - INFO     - before_agent_callback: {'_value': {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x0000022326748050>}, '_delta': {}}
+2025-07-07 00:45:34 - adk_app - INFO     - before_tool: update_address
+2025-07-07 00:45:34 - adk_app - INFO     - User not yet fully authenticated.
+2025-07-07 00:45:34 - adk_app - INFO     - Saving pending tool and args.
+2025-07-07 00:45:34 - adk_app - INFO     - Customer mou authenticated.
+2025-07-07 00:45:34 - adk_app - INFO     - send_otp: Sending OTP to moumita.laskar@gmail.com
+2025-07-07 00:45:36 - adk_app - INFO     - send_otp: Sending OTP with message  Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your OTP for Account Verification
+From: mou.laskar@gmail.com
+To: moumita.laskar@gmail.com
+
+Your OTP is: 188305
+
+2025-07-07 00:45:36 - adk_app - INFO     - Sent OTP to moumita.laskar@gmail.com: 188305
+2025-07-07 00:45:40 - adk_app - INFO     - ------------------------1:  session_id: 13c2645f-c511-47aa-ac09-49899f466594
+2025-07-07 00:45:40 - adk_app - INFO     - Session State: {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x000002232681E600>, 'pending_tool': 'update_address', 'pending_args': {'new_address': '159 N Abalone Dr Gilbert AZ 85244', 'username': 'mou', 'password': '5678'}, 'expected_otp': '188305', 'otp_timestamp': 1751874334.7888274, 'conversation': 'An OTP was sent to moumita.laskar@gmail.com. Please enter it to continue.'}
+2025-07-07 00:45:40 - adk_app - INFO     - last response: An OTP was sent to moumita.laskar@gmail.com. Please enter it to continue.
+2025-07-07 00:45:40 - adk_app - INFO     - last response: An OTP was sent to moumita.laskar@gmail.com. Please enter it to continue.
+2025-07-07 00:45:40 - adk_app - INFO     - ============================
+2025-07-07 00:45:40 - adk_app - INFO     - Full conversation log
+2025-07-07 00:45:40 - adk_app - INFO     - Session ID: 13c2645f-c511-47aa-ac09-49899f466594
+2025-07-07 00:45:40 - adk_app - INFO     - User ID: 4673
+2025-07-07 00:45:40 - adk_app - INFO     - Conversation: An OTP was sent to moumita.laskar@gmail.com. Please enter it to continue. 
+2025-07-07 00:45:58 - adk_app - INFO     - chat_with_agent: User (8605): 188305
+2025-07-07 00:45:58 - adk_app - INFO     - before_agent_callback: {'_value': {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x00000223267494C0>}, '_delta': {}}
+2025-07-07 00:46:01 - adk_app - INFO     - ------------------------1:  session_id: 13c2645f-c511-47aa-ac09-49899f466594
+2025-07-07 00:46:01 - adk_app - INFO     - Session State: {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x00000223267494C0>, 'conversation': "I cannot process the request with the provided information. If you'd like to create an account or update an existing one, please specify what you'd like to do."}
+2025-07-07 00:46:01 - adk_app - INFO     - last response: I cannot process the request with the provided information. If you'd like to create an account or update an existing one, please specify what you'd like to do.
+2025-07-07 00:46:01 - adk_app - INFO     - last response: I cannot process the request with the provided information. If you'd like to create an account or update an existing one, please specify what you'd like to do.
+2025-07-07 00:46:01 - adk_app - INFO     - ============================
+2025-07-07 00:46:01 - adk_app - INFO     - Full conversation log
+2025-07-07 00:46:01 - adk_app - INFO     - Session ID: 13c2645f-c511-47aa-ac09-49899f466594
+2025-07-07 00:46:01 - adk_app - INFO     - User ID: 8605
+2025-07-07 00:46:01 - adk_app - INFO     - Conversation: I cannot process the request with the provided information. If you'd like to create an account or update an existing one, please specify what you'd like to do. 

@@ -1,0 +1,40 @@
+2025-07-07 02:03:11 - adk_app - INFO     - create_session_endpoint: Session Id: cc15d9e7-8d86-414d-bc3b-41f69ccaff89
+2025-07-07 02:03:11 - adk_app - INFO     - create_session_endpoint: Session created for user: 4856
+2025-07-07 02:03:11 - adk_app - INFO     - create_session_endpoint: Created Session for user: {'id': 'cc15d9e7-8d86-414d-bc3b-41f69ccaff89', 'app_name': 'Customer Support Agent', 'user_id': '4856', 'state': {'customer': <account_agent.config.Customer.Customer object at 0x00000274AE3392B0>}, 'events': [], 'last_update_time': 1751878991.8106108}
+2025-07-07 02:03:16 - adk_app - INFO     - chat_with_agent: User (3191): hi
+2025-07-07 02:03:16 - adk_app - INFO     - 4before Calling : state {'customer': <account_agent.config.Customer.Customer object at 0x00000274AE3394F0>}
+2025-07-07 02:03:19 - adk_app - INFO     - ------------------------:  session_id: cc15d9e7-8d86-414d-bc3b-41f69ccaff89
+2025-07-07 02:03:19 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x00000274ADE8EF30>, 'conversation': 'Hi there! How can I help you today? I can assist with account management tasks like creating accounts or updating your password, email, contact, or address.'}
+2025-07-07 02:03:19 - adk_app - INFO     - last response: Hi there! How can I help you today? I can assist with account management tasks like creating accounts or updating your password, email, contact, or address.
+2025-07-07 02:03:19 - adk_app - INFO     - last response: Hi there! How can I help you today? I can assist with account management tasks like creating accounts or updating your password, email, contact, or address.
+2025-07-07 02:03:19 - adk_app - INFO     - ============================
+2025-07-07 02:03:19 - adk_app - INFO     - Full conversation log
+2025-07-07 02:03:19 - adk_app - INFO     - Session ID: cc15d9e7-8d86-414d-bc3b-41f69ccaff89
+2025-07-07 02:03:19 - adk_app - INFO     - User ID: 3191
+2025-07-07 02:03:19 - adk_app - INFO     - Conversation: Hi there! How can I help you today? I can assist with account management tasks like creating accounts or updating your password, email, contact, or address. 
+2025-07-07 02:03:25 - adk_app - INFO     - chat_with_agent: User (8050): update address
+2025-07-07 02:03:25 - adk_app - INFO     - 4before Calling : state {'customer': <account_agent.config.Customer.Customer object at 0x00000274AE3390D0>}
+2025-07-07 02:03:28 - adk_app - INFO     - ------------------------:  session_id: cc15d9e7-8d86-414d-bc3b-41f69ccaff89
+2025-07-07 02:03:28 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x00000274AE40E0C0>, 'conversation': 'I can help you with that. I need your username, password and the new address.'}
+2025-07-07 02:03:28 - adk_app - INFO     - last response: I can help you with that. I need your username, password and the new address.
+2025-07-07 02:03:28 - adk_app - INFO     - last response: I can help you with that. I need your username, password and the new address.
+2025-07-07 02:03:28 - adk_app - INFO     - ============================
+2025-07-07 02:03:28 - adk_app - INFO     - Full conversation log
+2025-07-07 02:03:28 - adk_app - INFO     - Session ID: cc15d9e7-8d86-414d-bc3b-41f69ccaff89
+2025-07-07 02:03:28 - adk_app - INFO     - User ID: 8050
+2025-07-07 02:03:28 - adk_app - INFO     - Conversation: I can help you with that. I need your username, password and the new address. 
+2025-07-07 02:03:43 - adk_app - INFO     - chat_with_agent: User (1526): 
+mou, 5678, 159 N Abalone Dr Gilbert AZ 85255
+2025-07-07 02:03:43 - adk_app - INFO     - 4before Calling : state {'customer': <account_agent.config.Customer.Customer object at 0x00000274AE40D220>}
+2025-07-07 02:03:47 - adk_app - INFO     - before_tool: update_address
+2025-07-07 02:03:47 - adk_app - INFO     - User not yet fully authenticated.
+2025-07-07 02:03:47 - adk_app - INFO     - Saving pending tool and args.
+2025-07-07 02:03:50 - adk_app - INFO     - ------------------------:  session_id: cc15d9e7-8d86-414d-bc3b-41f69ccaff89
+2025-07-07 02:03:50 - adk_app - INFO     - Session State: {'customer': <account_agent.config.Customer.Customer object at 0x00000274AE40D970>, 'pending_tool': 'update_address', 'pending_args': {'password': '5678', 'username': 'mou', 'new_address': '159 N Abalone Dr Gilbert AZ 85255'}, 'conversation': ''}
+2025-07-07 02:03:50 - adk_app - INFO     - last response: 
+2025-07-07 02:03:50 - adk_app - INFO     - last response: 
+2025-07-07 02:03:50 - adk_app - INFO     - ============================
+2025-07-07 02:03:50 - adk_app - INFO     - Full conversation log
+2025-07-07 02:03:50 - adk_app - INFO     - Session ID: cc15d9e7-8d86-414d-bc3b-41f69ccaff89
+2025-07-07 02:03:50 - adk_app - INFO     - User ID: 1526
+2025-07-07 02:03:50 - adk_app - INFO     - Conversation:  

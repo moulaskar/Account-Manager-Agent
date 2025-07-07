@@ -7,170 +7,197 @@ from typing import Optional, Dict, Any
 import random
 import time
 from services.logger import get_logger
-from services.utils import send_otp, update_customer_data
+from services.utils import send_otp, update_customer_data, SENT_OTP, OTP_TOOLS, OTP_ARGS
 from services.db_service import DBService
-
+from google.genai import types
 
 db = DBService()
 logger = get_logger()
 
-async def before_agent(callback_context: CallbackContext) -> None:
-    try:
-        user_id = callback_context.state.get("user_id")
-        session_id = callback_context.state.get("session_id")
-        app_name = session_id = callback_context.state.get("app_name")
-
-        logger.info(f"before_agent: user_id = {user_id}")
-        logger.info(f"before_agent: session_id = {session_id}")
+'''
+def before_agent_callback(callback_context):
+    state = callback_context.state
+    customer = state.get("customer")
+    logger.info(f"before_agent_callback: {vars(customer)}")
+    if customer.user_otp is not None:
         
-            
-        #session_deatils = callback_context.session_service.get_session(app_name, user_id, session_id)
-        #print(f"before_agent:  {vars(session_deatils)}")
-        #if tool.name == "create_account":
-        
-        return None
-
-    except Exception as e:
-        msg = f"Error in before_agent {e}"
+        pending_tool = state.pop("pending_tool", None)
+        pending_args = state.pop("pending_args", None)
+        msg = f"before_agent_callback: {pending_tool}, {pending_args}"
         logger.info(msg)
-        return
 
-    
-def before_tool(
-    tool: BaseTool,
-    args: Dict[str, Any],
-    tool_context: ToolContext
-) -> Optional[Dict]:
-    
-    if tool.name == "create_account":
-        return None
-    
+        if pending_tool and pending_args:
+            state["otp_verified"] = False
+            logger.info(f"Resuming original tool call: {pending_tool} with args: {pending_args}")
+            return types.Content(
+                functionCall=types.FunctionCall(
+                    name=pending_tool,
+                    args=pending_args
+                )
+            )
+'''       
+
+def before_tool(tool, args, tool_context):
+    import time
 
     logger.info(f"before_tool: {tool.name}")
-    username=""
-    password=""
-    
+
+    if tool.name == "create_account":
+        return None
+
     customer = tool_context.state.get("customer")
-    if customer:
-        username = customer.username
-        password = customer.password
-    
-    if customer and customer.otp is None:
-        if customer and not customer.username:
-            logger.info(f"before_tool: Getting Username and Password to Authenticate")
+    if not customer:
+        logger.warning("No customer in session.")
+        return {"error": "Session error. Please start again."}
+
+    # 1Check for OTP verification flag
+    if not customer.otp:
+        logger.info("User not yet fully authenticated.")
+
+        # 🟣 SAVE the pending intent if this is the FIRST TIME
+        if not tool_context.state.get("pending_tool"):
+            logger.info("Saving pending tool and args.")
+            tool_context.state["pending_tool"] = tool.name
+            tool_context.state["pending_args"] = args
+            customer.pending_tool = tool.name
+            customer.pending_args = args
+            OTP_TOOLS = tool.name
+            OTP_ARGS = args
+           
+
+
+        # 2Ensure username and password
+        if not customer.username or not customer.password:
             username = args.get("username")
             password = args.get("password")
-        if not username or not password:
-            return {
-                "status": "AUTH_REQUIRED",
-                "message": "Please provide both username and password to continue."
-            }
+            if not username or not password:
+                return {
+                    "status": "AUTH_REQUIRED",
+                    "message": "Please provide your username and password."
+                }
 
-        user_record = db.verify_user(username, password)
-        print(user_record)
-        if not user_record or user_record['password'] != password:
-            
-            logger.warning(f"Authentication failed for user: {username}")
-            return {           
-                "error": "Authentication failed. Invalid username or password."
-            }
-        logger.info(f"before_tool: User '{username}' authenticated successfully.")
+            user_record = db.verify_user(username, password)
+            if not user_record or user_record['password'] != password:
+                logger.warning(f"Invalid credentials for user: {username}")
+                return {"error": "Authentication failed. Invalid username or password."}
 
-            # User exists : get all the details
-        user_details = db.get_user_details(username)
-        logger.info(f"before_tool: database details {user_details}")
-        
-            # Update the Customer object in the session state
-        
-        if customer:
+            # Update customer details
+            user_details = db.get_user_details(username)
+            update_customer_data(user_details, customer)
             customer.username = username
             customer.password = password
-            customer.first_auth = True
-            updated_customer = update_customer_data(user_details, customer)
-            
-            logger.info(f"Customer object in session state updated for user: {username}")
-        else:
-            logger.warning("Could not find 'customer' object in session state to update.")
-        
-        # Get OTP
-        logger.info(f"before_tool: calling verify_otp_tool")
-        verify_otp_tool(args, tool_context, customer)
-    
-    logger.info(f"before_tool: authenticate_otp")
-    return authenticate_otp(args, tool_context, customer)
-    #if customer.otp:
-    #    return None
-    #if status is not None:
-    #    msg = f"OTP Authentication Failed for user: {username}"
-    #    logger.info(msg)
-    #    return msg
-    #logger.info(msg)
-    #return None
+            logger.info(f"Customer {username} authenticated.")
+
+        # 3Ensure OTP
+        otp_status = verify_otp_tool(args, tool_context, customer)
+        if otp_status is not None:
+            return otp_status
+
+        # If we get here: user just passed OTP!
+        logger.info("OTP verified. Restoring pending tool call.")
+
+        # restore original user intent
+        pending_tool = tool_context.state.pop("pending_tool", None)
+        pending_args = tool_context.state.pop("pending_args", None)
+
+        if pending_tool and pending_args:
+            tool.name = pending_tool
+            args.update(pending_args)
+            logger.info(f"Resuming tool {tool.name} with args {args}")
+            return None
+
+    # Already authenticated
+    return None
 
 
 def verify_otp_tool(args, tool_context, customer):
-    """Tool that enforces OTP-based email verification with ADK credential flow."""
+    import time
+    import random
 
-    #user_email = tool_context.state.get("user_email")
-    #user_email = ""
-    #if customer:
-    #    user_email = customer.email
+    user_email = customer.email
     customer = tool_context.state.get("customer")
-    if customer and customer.otp is None:
-        user_email = customer.email
-        logger.info(f"verify_otp_tool: customer is {vars(customer)}")
-        logger.info(f"verify_otp_tool")
-        if not user_email:
-            logger.info(f"verify_otp_tool: user email not found")
-            return {
-                "status": "NO_EMAIL",
-                "message": "No email is associated with this user. Please add your email first."
-            }
-        logger.info(f"verify_otp_tool: Verifying OTP with email {user_email}")
-        # Check if we already generated an OTP
-        expected_otp = tool_context.state.get("expected_otp",None)
-        otp_created_time = tool_context.state.get("otp_created_time", None)
+    if not user_email:
+        return {"error": "No email is associated with this account."}
 
-        if expected_otp is None or otp_created_time is None:
-            # First invocation: no OTP yet. Generate it.
-            otp = str(random.randint(100000, 999999))
-            tool_context.state["expected_otp"] = otp
-            tool_context.state["otp_created_time"] = time.time()
-            logger.info(f"verify_otp_tool: sending OTP {otp}")
-            # Simulate sending email
-            send_otp(user_email, otp)
-            #logger.info(f"verify_otp_tool: Creating AuthConfig")
-            # Tell ADK to ask user for OTP input next
-            #auth_config = AuthConfig(
-            #    name="otp_verification",
-            #    description=f"An OTP has been sent to {user_email}. Please enter it to continue.",
-            #    authScheme="otp",
-            #    fields=[{"name": "user_otp_input", "type": "string"}]
-            #)
-            #logger.info(f"verify_otp_tool: AuthConfig {auth_config}")
-            #tool_context.request_credential(auth_config)
+    expected_otp = tool_context.state.get("expected_otp")
+    otp_timestamp = tool_context.state.get("otp_timestamp")
 
-            return f"Please check your email {user_email} for the OTP and enter the OTP to continue."
-        
+    if not expected_otp or not otp_timestamp:
+        # Generate and send
+        otp = str(random.randint(100000, 999999))
 
-def authenticate_otp(args, tool_context, customer):
+        tool_context.state["expected_otp"] = otp
+        customer.expected_otp=otp
+        tool_context.state["otp_timestamp"] = time.time()
+        send_otp(user_email, otp)
+        logger.info(f"Sent OTP to {user_email}: {otp}")
+        return {
+            "status": "OTP_SENT",
+            "message": f"An OTP was sent to {user_email}. Please enter it to continue."
+        }
     
-    expected_otp = tool_context.state.get("expected_otp", None)
-    logger.info(f"authenticate_otp: expected OTP {expected_otp}")
-    if not expected_otp:
-        return["expected_otp"]
-    if time.time() - tool_context.state.get("otp_created_time", 0) > 300:
-        return {"error": "OTP expired. Please request a new one."}
-    user_input_otp = args.get("user_input")
-    logger.info(f"authenticate_otp: user_input_otp OTP {user_input_otp}")
-    if not user_input_otp:
-        return {"error": "Please enter the OTP you received."}
+    while True:
+        if time.time() - otp_timestamp > 300:
+            tool_context.state.pop("expected_otp", None)
+            tool_context.state.pop("otp_timestamp", None)
+            return {"error": "OTP expired. Please request a new one."}
+
+        user_input_otp = args.get("user_input")
+        #if not user_input_otp:
+        #return {"error": "Please enter the OTP you received."}
+
+        if user_input_otp == expected_otp:
+            customer.otp = True
+            tool_context.state["otp_verified"] = True
+            tool_context.state.pop("expected_otp", None)
+            tool_context.state.pop("otp_timestamp", None)
+            logger.info("OTP verified successfully.")
+            return None
+        else:
+            return {"error": "Incorrect OTP. Please try again."}
+    
+'''
+def after_tool(tool, args, tool_context):
+    customer = tool_context.state.get("customer", None)
+    if not customer:
+        logger.warning("No customer in session.")
+        return {"error": "Session error. Please start again."}
+    
+    otp_state = False
+    if customer:
+        otp = customer.expected_otp
+        if otp:
+            
+            logger.info(f'Calling verify_user_otp')
+            customer.user_otp = message
+            status = verify_user_otp(customer)
+            if status:
+                customer.otp= False
+                customer.expected_otp = None
+                customer.user_otp = None
+                pending_tool = customer.pending_tool
+                pending_args = customer.pending_args
+
+                logger.info(f"Resuming original tool call: {pending_tool} with args: {pending_args}")
+                return types.Content(
+                    functionCall=types.FunctionCall(
+                        name=pending_tool,
+                        args=pending_args
+                    )
+                )
+            
+def verify_user_otp(user_id, session_id,customer):
+    expected_otp = customer.expected_otp
+    user_input_otp = customer.user_otp
+    #otp_timestamp = state.get("otp_timestamp")
 
     if user_input_otp == expected_otp:
-        logger.info(f"authenticate_otp: correct ")
-        tool_context.state["otp_verified"] = True
-        return None
-    else:
-        logger.info(f"error: Incorrect OTP. Please try again. ")
-        return {"error": "Incorrect OTP. Please try again."}
         
+        customer.otp = True
+   
+        logger.info("OTP verified successfully.")
+        return True
+    else:
+        return False
+'''
+

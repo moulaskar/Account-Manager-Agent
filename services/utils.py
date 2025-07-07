@@ -9,7 +9,6 @@ from services.logger import get_logger
 
 
 
-
 logger = get_logger()
 async def process_agent_response(event):
     """Process and display agent response events."""
@@ -125,15 +124,3 @@ def send_otp(recipient_email, otp):
     logger.info(f"send_otp: Sending OTP with message  {msg}")
     return 
 
-
-
-
-
-
-
-
-
-
-
-
-    

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from google.adk.agents import Agent
 from google.adk.runners import Runner
 from dotenv import load_dotenv
+from google.genai import types
 from google.adk.sessions import InMemorySessionService
 from .shared_libraries.callbacks import before_tool
 from .config.Customer import Customer
@@ -18,6 +19,7 @@ from .tools.tools import (
 )
 
 session_service = InMemorySessionService()
+
 
 # Load .env variables
 load_dotenv()
@@ -83,14 +85,21 @@ root_agent = Agent(
         update_contact,
         update_address,
     ],
+    #before_agent_callback=before_agent_callback,
     before_tool_callback=before_tool,
+    
+    
+    
     output_key="conversation"
 )
 
 def get_initial_state(user_id: str, session_id: str) -> dict:
     """Creates the initial state for a new session."""
     customer = Customer(user_id=user_id, session_id=session_id, app_name=app_name)
-    return {"customer": customer}
+    return {"sent_otp":0,
+            "pending_tool": None,
+            "pending_args": None,
+            "customer": customer}
 
 # --- Runner setup ---
 runner = Runner(
@@ -151,28 +160,54 @@ async def chat_with_agent(request: Request):
     logger = get_logger()
     logger.info(f"chat_with_agent: User ({user_id}): {message}")
 
-    # Call the agent
+ 
+    logger.info(f"before Calling call_agent_async")
+    
+
+        
+    if state:
+        sent_otp = state.get("send_otp")
+        logger.info(f"11111111111111111111111 {state}")
+        if sent_otp:
+            logger.info(f"Resuming original tool call: {state.send_otp} with args: {state.pending_tool} {state.pending_args}")
+            pending_tool = state.get("pending_tool")
+            pending_args = state.get("pending_args")
+            return types.Content(
+                    functionCall=types.FunctionCall(
+                        name=pending_tool,
+                        args=pending_args
+                    )
+                )
+
     await call_agent_async(runner, user_id, session_id, message)
-    logger.info(f"------------------------1:  session_id: {session_id}")
+    logger.info(f"------------------------:  session_id: {session_id}")
     # Get updated session state
     session = await session_service.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
-    #set_intent(message, session)
-    
     logger.info(f"Session State: {session.state}")
- 
-    
+    customer = state.get("customer")
+    expected_otp = state.get("expected_otp")
+    pending_tools = state.get("pending_tools")
+    pending_args = state.get("pending_args")
+    if customer and customer.expected_otp is not None:
+        state['send_otp'] = customer.expected_otp
+        state['pending_tool'] = customer.pending_tool
+        state['pending_args'] = customer.pending_args
+        logger.info(f"6666666original tool call: {customer.pending_tool} with args: {customer.pending_args}")
     # Retrieve last agent response
     last_response = session.state.get("conversation")
     logger.info(f"last response: {last_response}")
     if not last_response:
         last_response = "Sorry, I didn't understand that."
-
+    # Retrieve last agent response
+    last_response = session.state.get("conversation")
+    logger.info(f"last response: {last_response}")
+    if not last_response:
+        last_response = "Sorry, I didn't understand that."
+    
+    
     # Maintain conversation history in session
     history = session.state.get("conversation", [])
-    #history.append({
-    #    "user": message,
-    #    "bot": last_response
-    #})
+
     session.state["conversation"] = history
 
     # Log full conversation so far
@@ -181,9 +216,12 @@ async def chat_with_agent(request: Request):
     logger.info(f"Session ID: {session_id}")
     logger.info(f"User ID: {user_id}")
     logger.info(f'Conversation: {history} ')
-    #for i, turn in enumerate(conversation, 1):
-    #    logger.info(f"{i}. User: {turn['user']}")
-    #    logger.info(f"   Bot: {turn['bot']}")
-    #logger.info("============================")
-
+ 
+    
     return {"session_id": session_id, "response": last_response}
+
+    
+    
+ 
+    
+    

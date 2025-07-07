@@ -13,8 +13,14 @@ class Customer:
         self.new_contact=None
         self.address=None
         self.otp=None
+        self.expected_otp=None
+        self.user_otp=None
+        self.otp_timestamp=None
         self.first_auth=False
         self.logs = None
+        self.pending_tool = None
+        self.pending_args = None
+        
 
     #async def load_from_session(self):
     #    session = await self.session_service.get_session(
