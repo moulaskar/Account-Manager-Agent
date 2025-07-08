@@ -6,6 +6,7 @@ gcloud sql connect account-management-db --user=admin_user --database=account_db
 
 #Git
 git init: Initializes a Git repository in your project directory.
+git status: Displays the current status of your Git repository.
 git add .: Stages all changes for the next commit.
 git commit -m "commit message": Creates a new commit with the staged changes and a message.
 git remote add origin [repo URL]: Links your local repository to a remote repository. # Only First time to link the repo
