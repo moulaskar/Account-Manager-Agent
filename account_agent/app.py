@@ -147,84 +147,48 @@ async def chat_with_agent(request: Request):
         logger = get_logger()
         logger.info(f"[CHAT] User requested ({user_id}) says: {message}")
 
+        
+        otp_status = state.get("otp_status")
+        logger.info(f"Current OTP  STATUS for {user_id} {otp_status}")
+        
+        if otp_status is not None:
+            if state["otp_status"] == "OTP_PENDING":
+                pending_tool = state["pending_tool"]
+                pending_args = state["pending_args"]
+
+                await runner.run_async(
+                    user_id=user_id,
+                    session_id=session_id,
+                    new_message=types.Content(
+                        role="user",
+                        parts=[types.Part(function_call=types.FunctionCall(name=pending_tool,args=pending_args))]
+                    )
+                )
+
+                # Clear pending
+                state["pending_tool"] = None
+                state["pending_args"] = None
+                state["otp_status"] = None
+
+                # Get updated state for response
+                updated_session = await session_service.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
+                last_response = updated_session.state.get("conversation", "Your request has been processed.")
+                return {"session_id": session_id, "response": last_response}
+    
+        
         # --- Normal Chat Processing ---
+        logger.info(f"Working on {message} for session_id: {session_id}")
         await call_agent_async(runner, user_id, session_id, message)
         logger.info(f"[CALL_AGENT] Completed for session_id: {session_id}")
-
 
         # Reload updated session state
         updated_session = await session_service.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
         last_response = updated_session.state.get("conversation", "Sorry, I didn't understand that.")
 
         return {"session_id": session_id, "response": last_response}
+        #---------------------------------
+        
     except Exception as e:
         msg = f"ERROR in chat_with_agent: {e}"
         logger.error(msg)
-
-'''
-# ---- Start of Chat
-@app.post("/chat")
-async def chat_with_agent(request: Request):
-    try:
-        data = await request.json()
-        user_id = data.get("user_id", "1234")
-        session_id = data.get("session_id")
-        message = data.get("message")
-
-        if not message:
-            raise HTTPException(status_code=400, detail="No message provided")
-
-        # --- Load or Create Session ---
-        if not session_id:
-            session_id = generate_session_id()
-
-        session = await session_service.get_session(
-            app_name=app_name, user_id=user_id, session_id=session_id
-        )
-        if not session:
-            # Session not found: create it
-            state = get_initial_state(user_id, session_id)
-            session = await session_service.create_session(
-                app_name=app_name, user_id=user_id, state=state, session_id=session_id
-            )
-        else:
-            state = session.state
-
-        # --- Setup Logging ---
-        setup_logger(session_id)
-        logger = get_logger()
-        logger.info(f"[CHAT] User requested ({user_id}) says: {message}")
-
-        # --- Normal Chat Processing ---
-        # Add a developer backdoor to inspect the session
-        #if message.strip().upper() == "DEBUG_INSPECT":
-        #    logger.info("[DEBUG] Programmatically calling inspect_session tool.")
-        #    await runner.call_tool(
-        #        user_id=user_id, session_id=session_id, tool_name="inspect_session", tool_args={}
-        #    )
-        #    return {"session_id": session_id, "response": "Inspect session tool called. Check the logs."}
-
-        await call_agent_async(runner, user_id, session_id, message)
-        logger.info(f"[CALL_AGENT] Completed for session_id: {session_id}")
-
-        # Reload updated session state
-        updated_session = await session_service.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
-        last_response = updated_session.state.get("conversation", "Sorry, I didn't understand that.")
-
-        return {"session_id": session_id, "response": last_response}
-    except Exception as e:
-        # Attempt to get session_id for logging, even if it failed early
-        try:
-            # Re-parse to be safe, in case the first parsing failed
-            error_data = await request.json()
-            session_id = error_data.get("session_id", "unknown_session")
-            setup_logger(session_id)
-        except:
-            # If request parsing fails, we can't get session_id
-            setup_logger("error_session")
-        
-        logger = get_logger()
-        logger.error(f"An unexpected error occurred in chat_with_agent: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="An internal server error occurred. Please try again later.")
-'''
 

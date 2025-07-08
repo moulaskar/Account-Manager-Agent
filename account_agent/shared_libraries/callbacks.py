@@ -73,8 +73,8 @@ def before_tool_callback(tool: BaseTool, args: Dict[str, Any], tool_context: Too
             state = tool_context.state
             result = verify_otp(state, username, user_otp, tool_name, args)
             if result["status"] == "OPT_VERIFIED_SUCCESS":
-                state["pending_tool"] = None
-                state["pending_args"] = None
+                #state["pending_tool"] = None
+                #state["pending_args"] = None
                 state["otp_status"] = None
                 return None
             return {"error": "Authentication failed for OTP. Cannot proceed"}
