@@ -2,6 +2,8 @@ uvicorn backend.app:app --reload : backend code to run
 streamlit run frontend/ui.py -Frontend
 uvicorn account_agent.app:app --reload : backend code to run
 
+gcloud sql connect account-management-db --user=admin_user --database=account_db --quiet
+
 #Git
 git init: Initializes a Git repository in your project directory.
 git add .: Stages all changes for the next commit.

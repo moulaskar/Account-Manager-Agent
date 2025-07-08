@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any
 import random
 import time
 from services.logger import get_logger
-from services.utils import send_otp, update_customer_data, SENT_OTP, OTP_TOOLS, OTP_ARGS
+from services.utils import send_otp, update_customer_data
 from services.db_service import DBService
 from google.genai import types
 
@@ -36,7 +36,6 @@ def before_agent_callback(callback_context):
                 )
             )
 '''       
-
 def before_tool(tool, args, tool_context):
     import time
 
@@ -44,8 +43,36 @@ def before_tool(tool, args, tool_context):
 
     if tool.name == "create_account":
         return None
-
+    username = args.get("username")
+    password = args.get("password")
+    
+    logger.info(f"Using verification with username and password for: {username}")
+    if not db.verify_user(username, password):
+        logger.warning(f"Invalid credentials for user: {username}")
+        return {"error": "Authentication failed. Invalid username or password."}
+    
     customer = tool_context.state.get("customer")
+    user_details = db.get_user_details(username)
+    update_customer_data(user_details, customer)
+
+    # update tool context
+    tool_context.state["customer"] = customer
+    logger.info(f"Customer {username} authenticated.")
+
+    return None
+
+
+    '''
+    customer = tool_context.state.get("customer")
+    # Just Username password - Temp for presentation
+    if customer.need_otp is False:
+        # 2Ensure username and password
+        
+
+     
+
+    # ------------ END
+    
     if not customer:
         logger.warning("No customer in session.")
         return {"error": "Session error. Please start again."}
@@ -61,8 +88,7 @@ def before_tool(tool, args, tool_context):
             tool_context.state["pending_args"] = args
             customer.pending_tool = tool.name
             customer.pending_args = args
-            OTP_TOOLS = tool.name
-            OTP_ARGS = args
+          
            
 
 
@@ -87,6 +113,9 @@ def before_tool(tool, args, tool_context):
             customer.username = username
             customer.password = password
             logger.info(f"Customer {username} authenticated.")
+            # No OTP
+            return None
+
 
         # 3Ensure OTP
         otp_status = verify_otp_tool(args, tool_context, customer)
@@ -108,7 +137,7 @@ def before_tool(tool, args, tool_context):
 
     # Already authenticated
     return None
-
+'''
 
 def verify_otp_tool(args, tool_context, customer):
     import time

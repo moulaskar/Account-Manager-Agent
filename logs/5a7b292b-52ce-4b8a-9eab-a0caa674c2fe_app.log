@@ -1,5 +1,0 @@
-2025-07-07 00:58:15 - adk_app - INFO     - create_session_endpoint: Session Id: 5a7b292b-52ce-4b8a-9eab-a0caa674c2fe
-2025-07-07 00:58:15 - adk_app - INFO     - create_session_endpoint: Session created for user: 2540
-2025-07-07 00:58:15 - adk_app - INFO     - create_session_endpoint: Created Session for user: {'id': '5a7b292b-52ce-4b8a-9eab-a0caa674c2fe', 'app_name': 'Customer Support Agent', 'user_id': '2540', 'state': {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x000002B970209160>}, 'events': [], 'last_update_time': 1751875095.3409612}
-2025-07-07 00:58:27 - adk_app - INFO     - chat_with_agent: User (5081): hi
-2025-07-07 00:58:27 - adk_app - INFO     - 44444444444444444: state {'otp_verified': False, 'customer': <account_agent.config.Customer.Customer object at 0x000002B970209490>}

@@ -6,6 +6,8 @@ import os
 import logging
 import sys
 import os
+from datetime import datetime
+
 
 class ColorFormatter(logging.Formatter):
     GREY = "\x1b[38;20m"
@@ -35,7 +37,7 @@ def setup_logger(session_id: str):
     logger = logging.getLogger('adk_app')
     logger.setLevel(logging.INFO)
     logger.propagate = False
-
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     if logger.hasHandlers():
         logger.handlers.clear()
 

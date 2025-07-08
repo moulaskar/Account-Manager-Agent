@@ -1,13 +1,14 @@
-
-
-import psycopg2
 import os
 import bcrypt
+import psycopg2
 from psycopg2 import sql
-import psycopg2.extras
+from psycopg2.extras import DictCursor
 from dotenv import load_dotenv
+from services.logger import get_logger
+
+# Load environment variables
 load_dotenv()
-#import logging
+logger = get_logger()
 
 
 class DBService:
@@ -18,112 +19,180 @@ class DBService:
                 user=os.getenv("DB_USER"),
                 password=os.getenv("DB_PASSWORD"),
                 host=os.getenv("DB_HOST"),
-                port=os.getenv("DB_PORT")
+                port=os.getenv("DB_PORT", 5432),
+                sslmode="require"  # Enforces SSL/TLS connection for Google Cloud SQL
             )
+            logger.info("Database connection established.")
         except psycopg2.OperationalError as e:
-            print(f"Error: Could not connect to the database. {e}")
+            logger.error(f"Error: Could not connect to the database. {e}")
             raise
+    
 
     def verify_user(self, username, password):
-        """Verifies a user by comparing the hash of the provided password."""
-        
-        
-        with self.conn.cursor() as cursor:
-            cursor.execute(f"""
-                SELECT username, password FROM {os.getenv("DB_TABLE_NAME")}
-                WHERE username = %s
-            """, (username,))
-            user_record = cursor.fetchone()
-            #if user_record and bcrypt.checkpw(password.encode('utf-8'), user_record[2].encode('utf-8')):
-            if user_record and user_record[1] == password:
-                # Return id and username, but not the password hash
-                return {'username': user_record[0], 'password': user_record[1]}
-            
-            #return(user_record[0], user_record[1])
+        """
+        Verifies a user by comparing the provided password with the stored hash.
+        Supports bcrypt hashes and plaintext fallback for legacy data.
+        """
+        try:
+            with self.conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(
+                    sql.SQL("SELECT username, password FROM {} WHERE username = %s").format(
+                        sql.Identifier(os.getenv("DB_TABLE_NAME"))
+                    ),
+                    (username,)
+                )
+                user_record = cursor.fetchone()
+                if user_record:
+                    stored_password = user_record["password"]
+                    logger.info(f"Using verification with username and password for: {username}")
+                    try:
+                        if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
+                            logger.info(f"User verified with bcrypt: {username}")
+                            return {"username": username}
+                    except ValueError:
+                        logger.warning(f"Stored password for {username} is not a bcrypt hash. Trying plaintext match.")
+                        if password == stored_password:
+                            logger.warning(f"User verified with plaintext password: {username}")
+                            return {"username": username}
+        except Exception as e:
+            logger.error(f"Error verifying user {username}: {e}")
+
+        logger.warning(f"Invalid credentials for user: {username}")
         return None
 
-    def update_field(self, username, field, value):
-        print("Inside update_field")
-        """Updates a single field for a user, protecting against SQL injection."""
-        # Whitelist of allowed fields to prevent SQL injection
-        allowed_fields = ["email", "password", "contact", "address"]
-        if field not in allowed_fields:
-            raise ValueError("Error: Invalid field specified for update.")
+    # ------------- END verify_user
+    '''
+    def verify_user(self, username, password):
+        """
+        Verifies a user by comparing the provided password with the stored hash.
+        """
+        try:
+            with self.conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(
+                    sql.SQL("SELECT username, password FROM {} WHERE username = %s").format(
+                        sql.Identifier(os.getenv("DB_TABLE_NAME"))
+                    ),
+                    (username,)
+                )
+                user_record = cursor.fetchone()
+                if user_record and bcrypt.checkpw(password.encode('utf-8'), user_record["password"].encode('utf-8')):
+                    logger.info(f"User verified: {username}")
+                    return {"username": user_record["username"]}
+        except Exception as e:
+            logger.error(f"Error verifying user {username}: {e}")
+        return None
+    '''
 
-        # Hash the password if it's the field being updated
+    def update_field(self, username, field, value):
+        """
+        Updates a single allowed field for a user.
+        """
+        allowed_fields = ["email", "password", "phone_number", "address"]
+        if field not in allowed_fields:
+            logger.error(f"Invalid field specified: {field}")
+            raise ValueError(f"Invalid field specified: {field}")
+
         if field == "password":
-            hashed_pw = bcrypt.hashpw(value.encode('utf-8'), bcrypt.gensalt())
-            value_to_update = hashed_pw.decode('utf-8')
+            hashed_pw = bcrypt.hashpw(value.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            value_to_update = hashed_pw
         else:
             value_to_update = value
 
-        with self.conn.cursor() as cursor:
-            # Use psycopg2.sql for safe dynamic identifiers
-           
-            query = sql.SQL("UPDATE {table} SET {column} = %s WHERE username = %s").format(
-                table=sql.Identifier(os.getenv("DB_TABLE_NAME")),
-                column=sql.Identifier(field)
-            )
-            cursor.execute(query, (value_to_update, username))
-            self.conn.commit()
+        try:
+            with self.conn.cursor() as cursor:
+                query = sql.SQL("UPDATE {table} SET {column} = %s WHERE username = %s").format(
+                    table=sql.Identifier(os.getenv("DB_TABLE_NAME")),
+                    column=sql.Identifier(field)
+                )
+                cursor.execute(query, (value_to_update, username))
+                self.conn.commit()
+                logger.info(f"Updated {field} for user {username}")
+                return True
+        except Exception as e:
+            logger.error(f"Error updating {field} for user {username}: {e}")
+            return False
+            #self.conn.rollback()
 
     def create_user(self, username, password, **kwargs):
-        """Creates a new user with required and optional fields, safely."""
-
+        """
+        Creates a new user with hashed password and optional fields.
+        """
         if not username or not password:
+            logger.error("Username and password are required to create a user.")
             raise ValueError("Username and password are required to create a user.")
 
-        # Hash the password
         hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-        # Define all fields and default values
         all_fields = {
             "username": username,
             "password": hashed_pw,
-            "first_name": kwargs.get("first_name", None),
-            "last_name": kwargs.get("last_name", None),
-            "email": kwargs.get("email", None),
-            "phone_number": kwargs.get("phone_number", None),
-            "address": kwargs.get("address", None),
+            "first_name": kwargs.get("first_name"),
+            "last_name": kwargs.get("last_name"),
+            "email": kwargs.get("email"),
+            "phone_number": kwargs.get("phone_number"),
+            "address": kwargs.get("address")
         }
 
-        # Construct the SQL query
         columns = list(all_fields.keys())
         values = list(all_fields.values())
 
-        query = sql.SQL("""
-                INSERT INTO {table} ({fields})
-                VALUES ({placeholders})
-                """).format(
-            table=sql.Identifier(os.getenv("DB_TABLE_NAME")),
-            fields=sql.SQL(", ").join(map(sql.Identifier, columns)),
-            placeholders=sql.SQL(", ").join(sql.Placeholder() * len(columns))
-        )
+        try:
+            with self.conn.cursor() as cursor:
+                query = sql.SQL(
+                    "INSERT INTO {table} ({fields}) VALUES ({placeholders})"
+                ).format(
+                    table=sql.Identifier(os.getenv("DB_TABLE_NAME")),
+                    fields=sql.SQL(", ").join(map(sql.Identifier, columns)),
+                    placeholders=sql.SQL(", ").join(sql.Placeholder() * len(columns))
+                )
+                cursor.execute(query, values)
+                self.conn.commit()
+                logger.info(f"Created user {username}")
+        except Exception as e:
+            logger.error(f"Error creating user {username}: {e}")
+            self.conn.rollback()
 
-        with self.conn.cursor() as cursor:
-            cursor.execute(query, values)
-            self.conn.commit()
+    def get_user_email(self, username):
+        """
+        Returns the email address for a given username.
+        """
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute(
+                    sql.SQL("SELECT email FROM {} WHERE username = %s").format(
+                        sql.Identifier(os.getenv("DB_TABLE_NAME"))
+                    ),
+                    (username,)
+                )
+                result = cursor.fetchone()
+                if result:
+                    logger.info(f"Retrieved email for user {username}")
+                    return result[0]
+        except Exception as e:
+            logger.error(f"Error retrieving email for user {username}: {e}")
+        return None
 
-    def get_user_email(self, user_id):
-        with self.conn.cursor() as cursor:
-            cursor.execute(f"""
-                SELECT email FROM {os.getenv("DB_TABLE_NAME")}
-                WHERE id = %s
-            """, (user_id,))
-            result = cursor.fetchone()
-            return result[0] if result else None
-        
     def get_user_details(self, username):
-        with self.conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
-            cursor.execute(
-                f"SELECT * FROM {os.getenv('DB_TABLE_NAME')} WHERE username = %s",
-                (username,)
-            )
-            row = cursor.fetchone()
-            return dict(row) if row else None
+        """
+        Returns all user details as a dictionary.
+        """
+        try:
+            with self.conn.cursor(cursor_factory=DictCursor) as cursor:
+                cursor.execute(
+                    sql.SQL("SELECT * FROM {} WHERE username = %s").format(
+                        sql.Identifier(os.getenv("DB_TABLE_NAME"))
+                    ),
+                    (username,)
+                )
+                row = cursor.fetchone()
+                if row:
+                    logger.info(f"Retrieved details for user {username}")
+                    return dict(row)
+        except Exception as e:
+            logger.error(f"Error retrieving details for user {username}: {e}")
+        return None
 
     def close(self):
-        """Closes the database connection."""
         if self.conn:
             self.conn.close()
-
+            logger.info("Database connection closed.")

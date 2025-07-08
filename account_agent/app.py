@@ -6,8 +6,9 @@ from google.adk.agents import Agent
 from google.adk.runners import Runner
 from dotenv import load_dotenv
 from google.genai import types
-from google.adk.sessions import InMemorySessionService
+
 from .shared_libraries.callbacks import before_tool
+from services.utils import session_service
 from .config.Customer import Customer
 from .tools.tools import (
     create_account,
@@ -18,7 +19,7 @@ from .tools.tools import (
     inspect_session,
 )
 
-session_service = InMemorySessionService()
+
 
 
 # Load .env variables
@@ -40,44 +41,16 @@ app.add_middleware(
 
 # --- Imports from services ---
 from services.logger import setup_logger, get_logger
-from services.utils import call_agent_async, set_intent, get_user_id
+from services.utils import call_agent_async, set_intent, get_user_id, get_instruction
 
 
-
+instructions = get_instruction()
 # --- Root Agent with sub-agents ---
 root_agent = Agent(
     name="account_agent",
     model="gemini-2.5-flash",
     global_instruction="Account Management BOT",
-    instruction="""
-        You are an Account Management assistant.
-
-        Your job is to help users with the following functions:
-
-        - create_account
-        - update_password
-        - update_email
-        - update_contact
-        - update_address
-
-        Behavior:
-        - While entering details, just seperate each details in same sequence with comma. Don't use comma while entering address
-        - If the user asks to do one of these, you must call the matching TOOL with all required arguments.
-        - If you do not have enough arguments, ask the user for them.
-        - Do not just respond in text when a TOOL is appropriate: always call the TOOL if you can.
-        - You can call only one TOOL per user request.
-        - Respond conversationally if the user says hello or has a non-tool question.
-
-        Examples:
-
-        - User: "I want to update my email"
-        -> Ask for username, password, new_email, then call update_email
-
-        - User: "Create a new account for John Doe"
-        -> Ask for all required fields, then call create_account
-
-        
-        """,
+    instruction=instructions,
     tools=[
         create_account,
         update_email,
@@ -87,19 +60,18 @@ root_agent = Agent(
     ],
     #before_agent_callback=before_agent_callback,
     before_tool_callback=before_tool,
-    
-    
-    
     output_key="conversation"
 )
 
 def get_initial_state(user_id: str, session_id: str) -> dict:
     """Creates the initial state for a new session."""
     customer = Customer(user_id=user_id, session_id=session_id, app_name=app_name)
+    initial_greeting = "Hello!"
     return {"sent_otp":0,
             "pending_tool": None,
             "pending_args": None,
-            "customer": customer}
+            "customer": customer,
+            "conversation": initial_greeting}
 
 # --- Runner setup ---
 runner = Runner(
@@ -129,9 +101,101 @@ async def create_session_endpoint(request: Request):
     logger.info(f"create_session_endpoint: Session Id: {session_id}")
     logger.info(f"create_session_endpoint: Session created for user: {user_id}")
     logger.info(f"create_session_endpoint: Created Session for user: {vars(session)}")
-    return {"session_id": session_id}
+    return {"session_id": session_id, "initial_message": state.get("conversation")}
+
+# ---- Start of Chat
+@app.post("/chat")
+async def chat_with_agent(request: Request):
+    data = await request.json()
+    user_id = data.get("user_id", "1234")
+    session_id = data.get("session_id")
+    message = data.get("message")
+    
+    if not message:
+        raise HTTPException(status_code=400, detail="No message provided")
+
+    # --- Load or Create Session ---
+    if not session_id:
+        session_id = generate_session_id()
+
+    session = await session_service.get_session(
+        app_name=app_name, user_id=user_id, session_id=session_id
+    )
+    if not session:
+        # Session not found: create it
+        state = get_initial_state(user_id, session_id)
+        session = await session_service.create_session(
+            app_name=app_name, user_id=user_id, state=state, session_id=session_id
+        )
+    else:
+        state = session.state
+
+    # --- Setup Logging ---
+    setup_logger(session_id)
+    logger = get_logger()
+    logger.info(f"[CHAT] User ({user_id}) says: {message}")
+
+    # --- Load Customer from State ---
+    customer_data = state.get("customer")
+    if isinstance(customer_data, dict):
+        customer = Customer.from_dict(customer_data)
+    elif isinstance(customer_data, Customer):
+        customer = customer_data
+    else:
+        customer = Customer(user_id=user_id, session_id=session_id, app_name=app_name)
+
+    # --- OTP Verification Flow ---
+    expected_otp = getattr(customer, "expected_otp", None)
+    if expected_otp and message.strip() == expected_otp:
+        logger.info(f"[OTP] Verified for user {user_id}")
+
+        pending_tool = customer.pending_tool
+        pending_args = customer.pending_args
+
+        if not (pending_tool and pending_args):
+            return {"session_id": session_id, "response": "Error: No pending action found after OTP verification."}
+
+        # Call the pending tool immediately
+        logger.info(f"[RESUME] Calling pending_tool={pending_tool} with args={pending_args}")
+        await runner.call_tool(user_id=user_id, session_id=session_id, tool_name=pending_tool, tool_args=pending_args)
+
+        # Clean up state
+        customer.pending_tool = None
+        customer.pending_args = None
+        customer.expected_otp = None
+        session.state["customer"] = customer.to_dict()
+
+        # Get updated conversation
+        updated_session = await session_service.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
+        last_response = updated_session.state.get("conversation", "Your request has been processed.")
+
+        return {"session_id": session_id, "response": last_response}
+
+    # --- Normal Chat Processing ---
+    # Add a developer backdoor to inspect the session
+    if message.strip().upper() == "DEBUG_INSPECT":
+        logger.info("[DEBUG] Programmatically calling inspect_session tool.")
+        await runner.call_tool(
+            user_id=user_id, session_id=session_id, tool_name="inspect_session", tool_args={}
+        )
+        return {"session_id": session_id, "response": "Inspect session tool called. Check the logs."}
+
+
+    # Save customer back to state
+    state["customer"] = customer.to_dict()
+    #await session_service.update_session(session)
+
+    await call_agent_async(runner, user_id, session_id, message)
+    logger.info(f"[CALL_AGENT] Completed for session_id: {session_id}")
+
+    # Reload updated session state
+    updated_session = await session_service.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
+    last_response = updated_session.state.get("conversation", "Sorry, I didn't understand that.")
+
+    return {"session_id": session_id, "response": last_response}
 
 # --- Endpoint: Chat ---
+'''
 @app.post("/chat")
 async def chat_with_agent(request: Request):
     data = await request.json()
@@ -219,6 +283,7 @@ async def chat_with_agent(request: Request):
  
     
     return {"session_id": session_id, "response": last_response}
+'''
 
     
     

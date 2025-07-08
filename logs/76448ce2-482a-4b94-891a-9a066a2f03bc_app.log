@@ -1,5 +1,0 @@
-2025-07-07 02:33:13 - adk_app - INFO     - create_session_endpoint: Session Id: 76448ce2-482a-4b94-891a-9a066a2f03bc
-2025-07-07 02:33:13 - adk_app - INFO     - create_session_endpoint: Session created for user: 6358
-2025-07-07 02:33:13 - adk_app - INFO     - create_session_endpoint: Created Session for user: {'id': '76448ce2-482a-4b94-891a-9a066a2f03bc', 'app_name': 'Customer Support Agent', 'user_id': '6358', 'state': {'customer': <account_agent.config.Customer.Customer object at 0x000002265D4E8F50>}, 'events': [], 'last_update_time': 1751880793.5510669}
-2025-07-07 02:33:18 - adk_app - INFO     - chat_with_agent: User (5433): hi
-2025-07-07 02:33:18 - adk_app - INFO     - before Calling call_agent_async

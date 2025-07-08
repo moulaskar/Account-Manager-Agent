@@ -6,3 +6,5 @@ requests
 fastapi
 uvicorn
 google-generativeai
+psycopg2
+bcrypt
