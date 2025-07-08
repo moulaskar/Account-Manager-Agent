@@ -12,15 +12,6 @@ class Customer:
         self.email=None
         self.new_contact=None
         self.address=None
-        self.otp=None
-        self.expected_otp=None
-        self.user_otp=None
-        self.otp_timestamp=None
-        self.first_auth=False
-        self.logs = None
-        self.pending_tool = None
-        self.pending_args = None
-        self.need_otp = False
         
 
     @classmethod
@@ -39,12 +30,6 @@ class Customer:
         obj.email = data.get("email")
         obj.new_contact = data.get("new_contact")
         obj.address = data.get("address")
-        obj.otp = data.get("otp")
-        obj.first_auth = data.get("first_auth")
-        obj.logs = data.get("logs")
-        obj.expected_otp = data.get("expected_otp")
-        obj.pending_tool = data.get("pending_tool")
-        obj.pending_args = data.get("pending_args")
         return obj
 
     def to_dict(self):
@@ -56,9 +41,6 @@ class Customer:
             "email": self.email,
             "new_contact": self.new_contact,
             "address": self.address,
-            "otp": self.otp,
-            "first_auth": self.first_auth,
-            "logs": self.logs
         }
 
     def load_from_dict(self, data: dict):
@@ -69,6 +51,6 @@ class Customer:
         self.email = data.get("email")
         self.new_contact = data.get("new_contact")
         self.address = data.get("address")
-        self.otp = data.get("otp")
-        self.first_auth = data.get("first_auth")
-        self.logs = data.get("logs")
+        #self.otp = data.get("otp")
+        #self.first_auth = data.get("first_auth")
+        #self.logs = data.get("logs")

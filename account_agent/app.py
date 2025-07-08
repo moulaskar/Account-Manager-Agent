@@ -7,7 +7,7 @@ from google.adk.runners import Runner
 from dotenv import load_dotenv
 from google.genai import types
 from google.adk.sessions import InMemorySessionService
-from .shared_libraries.callbacks import before_tool
+from .shared_libraries.callbacks import before_tool_callback
 
 from .config.Customer import Customer
 from .tools.tools import (
@@ -67,15 +67,21 @@ root_agent = Agent(
         update_address,
     ],
     #before_agent_callback=before_agent_callback,
-    before_tool_callback=before_tool,
+    before_tool_callback=before_tool_callback,
     output_key="conversation"
 )
 
 def get_initial_state(user_id: str, session_id: str) -> dict:
     """Creates the initial state for a new session."""
     customer = Customer(user_id=user_id, session_id=session_id, app_name=app_name)
-    initial_greeting = "Hello!"
-    return {"customer": customer}
+    initial_state_dict = {
+        "pending_tool": None,
+        "pending_args": None,
+        "otp_status": None,
+        "customer": customer,
+    }
+    
+    return initial_state_dict
         
 
 # --- Runner setup ---
@@ -145,13 +151,6 @@ async def chat_with_agent(request: Request):
         await call_agent_async(runner, user_id, session_id, message)
         logger.info(f"[CALL_AGENT] Completed for session_id: {session_id}")
 
-        # --- SAVE session state back after agent call ---
-        #await session_service.save_session(
-        #    app_name=app_name,
-        #    user_id=user_id,
-        #    session_id=session_id,
-        #    state=session.state
-        #)
 
         # Reload updated session state
         updated_session = await session_service.get_session(app_name=app_name, user_id=user_id, session_id=session_id)
