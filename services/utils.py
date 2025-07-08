@@ -5,42 +5,35 @@ import random
 import os
 from email.message import EmailMessage
 from services.logger import get_logger
-from google.adk.sessions import InMemorySessionService
+
 
 
 logger = get_logger()
-session_service = InMemorySessionService()
+
 
 async def process_agent_response(event):
-    """Process and display agent response events."""
-    print(f"Event ID: {event.id}, Author: {event.author}")
+    """Process and return agent's final response text."""
+    logger.info(f"process_agent_response: Event ID: {event.id}, Author: {event.author}")
 
-    # Check for specific parts first
-    has_specific_part = False
-    if event.content and event.content.parts:
+    if not event.content or not event.content.parts:
+        logger.info("process_agent_response: No content parts in event")
+        return None
+
+    for idx, part in enumerate(event.content.parts):
+        if hasattr(part, "text") and part.text and not part.text.isspace():
+            logger.info(f"process_agent_response: Part {idx}: '{part.text.strip()}'")
+
+    if event.is_final_response():
         for part in event.content.parts:
             if hasattr(part, "text") and part.text and not part.text.isspace():
-                print(f"  Text: '{part.text.strip()}'")
+                final_response = part.text.strip()
+                logger.info("===================== AGENT FINAL RESPONSE ========================")
+                logger.info(f"process_agent_response: {final_response}")
+                return final_response
 
-    # Check for final response after specific parts
-    final_response = None
-    if not has_specific_part and event.is_final_response():
-        if (
-            event.content
-            and event.content.parts
-            and hasattr(event.content.parts[0], "text")
-            and event.content.parts[0].text
-        ):
-            final_response = event.content.parts[0].text.strip()
-            # Use colors and formatting to make the final response stand out
-            print("=====================AGENT RESPONSE ========================")
-            
-            print(f"{final_response}")
-        else:
-            print("==> Final Agent Response: [No text content in final event]")
-            #rint(f"\n{Colors.BG_RED}{Colors.WHITE}{Colors.BOLD}==> Final Agent Response: [No text content in final event]{Colors.RESET}\n")
+    return None
 
-    return final_response
+
 
 async def call_agent_async(runner, user_id, session_id, query):
     """Call the agent asynchronously with the user's query."""
@@ -48,8 +41,9 @@ async def call_agent_async(runner, user_id, session_id, query):
     
     final_response_text = None
     agent_name = None
-
+    logger.info(f"call_agent_async: Query: {query}")
     try:
+        logger.info(f"call_agent_async: user_id: {user_id}  session_id: {session_id}  content: {content}")
         async for event in runner.run_async(
             user_id=user_id, 
             session_id=session_id, 
@@ -59,7 +53,7 @@ async def call_agent_async(runner, user_id, session_id, query):
             # Capture the agent name from the event if available
             if event.author:
                 agent_name = event.author
-
+            logger.info(f"call_agent_async: user_id: Waiting response from agent: {agent_name}")
             response = await process_agent_response(event)
             logger.info(f"call_agent_async: Agent Response: {response}")
             if response:
@@ -136,7 +130,7 @@ def get_instruction():
             - You are an useful Account Manager service agent helping BOT. 
             - You help users with below account services/tools. Mention the actions when you greet the user
                 - create account: Create new account for the user by calling create_account.
-                - update password: Update password for the user by calling update_contact.
+                - update password: Update password for the user by calling update_password.
                 - update email: Update email for the user by calling update_email.
                 - update_contact: Update contact for the user by calling update_contact.
                 - update_address: Update address for the user by calling update_address.

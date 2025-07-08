@@ -89,6 +89,7 @@ def update_contact(tool_context: ToolContext, username: str, password: str, new_
             customer.new_contact = new_phone_number
             tool_context.state["customer"] = customer
             return f"Phone number updated successfully for {username}."
+        
         return f"Failed to update phone number for {username}."
     except Exception as e:
         logger.error(f"Failed to update phone number for {username}: {e}", exc_info=True)
@@ -97,7 +98,7 @@ def update_contact(tool_context: ToolContext, username: str, password: str, new_
 
 def update_address(tool_context: ToolContext, username: str, password: str, new_address: str) -> str:
     """
-    Updates the physical address for an existing user's account.
+    Updates the address for an existing user's account.
 
     This tool requires the user to be authenticated. The `before_tool` callback
     handles authentication.
@@ -120,7 +121,10 @@ def update_address(tool_context: ToolContext, username: str, password: str, new_
             customer = tool_context.state.get("customer")
             customer.address = new_address
             tool_context.state["customer"] = customer
+            
             return f"Address updated successfully for {username}."
+        
+        logger.info(f"Failed to update address for {username}")
         return f"Failed to update address for {username}."
     except Exception as e:
         logger.error(f"Failed to update address for {username}: {e}", exc_info=True)

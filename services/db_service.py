@@ -110,8 +110,8 @@ class DBService:
                 return True
         except Exception as e:
             logger.error(f"Error updating {field} for user {username}: {e}")
-            return False
-            #self.conn.rollback()
+            #return False
+            self.conn.rollback()
 
     def create_user(self, username, password, **kwargs):
         """

@@ -1,21 +1,21 @@
 import streamlit as st
 import requests
-import uuid
 import random
 
 API_BASE = "http://localhost:8000"
 
-user_id = "1"
-
 st.title("🤖 Brightspeed Chatbot")
+
+# --- User and Session ID Management ---
 if "user_id" not in st.session_state:
-    user_id = str(random.randint(1000, 9999))
-# --- Session ID Management ---
+    st.session_state.user_id = str(random.randint(1000, 9999))
+
 if "session_id" not in st.session_state:
     with st.spinner("Initializing session..."):
         try:
-            
-            res = requests.post(f"{API_BASE}/session", json={"user_id": user_id})
+            res = requests.post(
+                f"{API_BASE}/session", json={"user_id": st.session_state.user_id}
+            )
             res.raise_for_status()
             st.session_state.session_id = res.json()["session_id"]
         except Exception as e:
@@ -42,7 +42,7 @@ if user_input := st.chat_input("Type your message..."):
         res = requests.post(
             f"{API_BASE}/chat",
             json={
-                "user_id": user_id,
+                "user_id": st.session_state.user_id,
                 "session_id": st.session_state.session_id,
                 "message": user_input
             }

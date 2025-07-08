@@ -14,28 +14,7 @@ from google.genai import types
 db = DBService()
 logger = get_logger()
 
-'''
-def before_agent_callback(callback_context):
-    state = callback_context.state
-    customer = state.get("customer")
-    logger.info(f"before_agent_callback: {vars(customer)}")
-    if customer.user_otp is not None:
-        
-        pending_tool = state.pop("pending_tool", None)
-        pending_args = state.pop("pending_args", None)
-        msg = f"before_agent_callback: {pending_tool}, {pending_args}"
-        logger.info(msg)
-
-        if pending_tool and pending_args:
-            state["otp_verified"] = False
-            logger.info(f"Resuming original tool call: {pending_tool} with args: {pending_args}")
-            return types.Content(
-                functionCall=types.FunctionCall(
-                    name=pending_tool,
-                    args=pending_args
-                )
-            )
-'''       
+      
 def before_tool(tool, args, tool_context):
     import time
 
@@ -60,84 +39,6 @@ def before_tool(tool, args, tool_context):
     logger.info(f"Customer {username} authenticated.")
 
     return None
-
-
-    '''
-    customer = tool_context.state.get("customer")
-    # Just Username password - Temp for presentation
-    if customer.need_otp is False:
-        # 2Ensure username and password
-        
-
-     
-
-    # ------------ END
-    
-    if not customer:
-        logger.warning("No customer in session.")
-        return {"error": "Session error. Please start again."}
-
-    # 1Check for OTP verification flag
-    if not customer.otp:
-        logger.info("User not yet fully authenticated.")
-
-        # 🟣 SAVE the pending intent if this is the FIRST TIME
-        if not tool_context.state.get("pending_tool"):
-            logger.info("Saving pending tool and args.")
-            tool_context.state["pending_tool"] = tool.name
-            tool_context.state["pending_args"] = args
-            customer.pending_tool = tool.name
-            customer.pending_args = args
-          
-           
-
-
-        # 2Ensure username and password
-        if not customer.username or not customer.password:
-            username = args.get("username")
-            password = args.get("password")
-            if not username or not password:
-                return {
-                    "status": "AUTH_REQUIRED",
-                    "message": "Please provide your username and password."
-                }
-
-            user_record = db.verify_user(username, password)
-            if not user_record or user_record['password'] != password:
-                logger.warning(f"Invalid credentials for user: {username}")
-                return {"error": "Authentication failed. Invalid username or password."}
-
-            # Update customer details
-            user_details = db.get_user_details(username)
-            update_customer_data(user_details, customer)
-            customer.username = username
-            customer.password = password
-            logger.info(f"Customer {username} authenticated.")
-            # No OTP
-            return None
-
-
-        # 3Ensure OTP
-        otp_status = verify_otp_tool(args, tool_context, customer)
-        if otp_status is not None:
-            return otp_status
-
-        # If we get here: user just passed OTP!
-        logger.info("OTP verified. Restoring pending tool call.")
-
-        # restore original user intent
-        pending_tool = tool_context.state.pop("pending_tool", None)
-        pending_args = tool_context.state.pop("pending_args", None)
-
-        if pending_tool and pending_args:
-            tool.name = pending_tool
-            args.update(pending_args)
-            logger.info(f"Resuming tool {tool.name} with args {args}")
-            return None
-
-    # Already authenticated
-    return None
-'''
 
 def verify_otp_tool(args, tool_context, customer):
     import time
@@ -185,48 +86,4 @@ def verify_otp_tool(args, tool_context, customer):
         else:
             return {"error": "Incorrect OTP. Please try again."}
     
-'''
-def after_tool(tool, args, tool_context):
-    customer = tool_context.state.get("customer", None)
-    if not customer:
-        logger.warning("No customer in session.")
-        return {"error": "Session error. Please start again."}
-    
-    otp_state = False
-    if customer:
-        otp = customer.expected_otp
-        if otp:
-            
-            logger.info(f'Calling verify_user_otp')
-            customer.user_otp = message
-            status = verify_user_otp(customer)
-            if status:
-                customer.otp= False
-                customer.expected_otp = None
-                customer.user_otp = None
-                pending_tool = customer.pending_tool
-                pending_args = customer.pending_args
-
-                logger.info(f"Resuming original tool call: {pending_tool} with args: {pending_args}")
-                return types.Content(
-                    functionCall=types.FunctionCall(
-                        name=pending_tool,
-                        args=pending_args
-                    )
-                )
-            
-def verify_user_otp(user_id, session_id,customer):
-    expected_otp = customer.expected_otp
-    user_input_otp = customer.user_otp
-    #otp_timestamp = state.get("otp_timestamp")
-
-    if user_input_otp == expected_otp:
-        
-        customer.otp = True
-   
-        logger.info("OTP verified successfully.")
-        return True
-    else:
-        return False
-'''
 
